@@ -1,38 +1,26 @@
-/**
- * Gets the repositories of the user from Github
- */
-
-import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { LOAD_REPOS } from 'containers/App/constants';
-import { reposLoaded, repoLoadingError } from 'containers/App/actions';
-
-import request from 'utils/request';
-import { makeSelectUsername } from 'containers/HomePage/selectors';
+import { call, put, takeLatest } from 'redux-saga/effects';
+import { FETCH_INSPIRATION } from './constants';
+import { fetchInspirationSuccess, fetchInspirationFailure } from './actions';
+import * as API from '../../utils/API';
 
 /**
- * Github repos request/response handler
+ *
+ * Sagas are middleware that handles side effects, from things like data fetching and
+ * impure things like accessing the browser cache easier to manage, more efficient
+ * to execute, easy to test, and better at handling failures.
+ *
+ * use takelatest so we don't have to fetch all making the process more efficient
  */
-export function* getRepos() {
-  // Select username from store
-  const username = yield select(makeSelectUsername());
-  const requestURL = `https://api.github.com/users/${username}/repos?type=all&sort=updated`;
 
-  try {
-    // Call our request helper (see 'utils/request')
-    const repos = yield call(request, requestURL);
-    yield put(reposLoaded(repos, username));
-  } catch (err) {
-    yield put(repoLoadingError(err));
-  }
+export default function* homePageSaga() {
+  yield takeLatest(FETCH_INSPIRATION, fetchInspirationSaga);
 }
 
-/**
- * Root saga manages watcher lifecycle
- */
-export default function* githubData() {
-  // Watches for LOAD_REPOS actions and calls getRepos when one comes in.
-  // By using `takeLatest` only the result of the latest API call is applied.
-  // It returns task descriptor (just like fork) so we can continue execution
-  // It will be cancelled automatically on component unmount
-  yield takeLatest(LOAD_REPOS, getRepos);
+function* fetchInspirationSaga() {
+  try {
+    const inspiration = yield call(API.getInspiration);
+    yield put(fetchInspirationSuccess(inspiration));
+  } catch (error) {
+    yield put(fetchInspirationFailure());
+  }
 }

@@ -1,29 +1,55 @@
+import produce from 'immer';
+
 /*
- * HomeReducer
  *
- * The reducer takes care of our data. Using actions, we can
- * update our application state. To add a new action,
- * add it to the switch statement in the reducer function
+ * HomePage reducer
+ *
  *
  */
 
-import produce from 'immer';
-import { CHANGE_USERNAME } from './constants';
+import {
+  FETCH_INSPIRATION,
+  FETCH_INSPIRATION_SUCCESS,
+  FETCH_INSPIRATION_FAILURE,
+} from './constants';
 
-// The initial state of the App
 export const initialState = {
-  username: '',
+  inspiration: [],
+  fetching: false,
+  resulted: false,
+  error: false,
 };
 
+/**
+ *
+ *Immer creates a draft of the state that you can alter
+  then immer turns that draft into the actual state
+  keeping reducer functions pure and avoiding a lot of
+  boilerplate, eg: spreading out state
+ *
+ */
+
 /* eslint-disable default-case, no-param-reassign */
-const homeReducer = (state = initialState, action) =>
+const homePageReducer = (state = initialState, action) =>
   produce(state, draft => {
     switch (action.type) {
-      case CHANGE_USERNAME:
-        // Delete prefixed '@' from the github username
-        draft.username = action.username.replace(/@/gi, '');
+      case FETCH_INSPIRATION:
+        draft.fetching = true;
+        draft.resulted = false;
+        draft.error = false;
+        break;
+      case FETCH_INSPIRATION_SUCCESS:
+        draft.inspiration = action.inspiration;
+        draft.fetching = false;
+        draft.resulted = true;
+        draft.error = false;
+        break;
+      case FETCH_INSPIRATION_FAILURE:
+        draft.fetching = false;
+        draft.resulted = true;
+        draft.error = true;
         break;
     }
   });
 
-export default homeReducer;
+export default homePageReducer;
